@@ -7,9 +7,8 @@ __pycache__/
 *.so
 
 # personal data
-data/deposits.csv
-data/transactions.xlsx
-data/withdrawals.csv
+data/*.csv
+data/*.xlsx
 data/deposits-transactions-withdrawals.csv
 
 # Distribution / packaging
