@@ -8,7 +8,7 @@ __pycache__/
 
 # personal data
 data/deposits.csv
-data/transacations.xlsx
+data/transactions.xlsx
 data/withdrawals.csv
 data/deposits-transactions-withdrawals.csv
 
