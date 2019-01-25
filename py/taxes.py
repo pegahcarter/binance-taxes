@@ -43,6 +43,9 @@ for date, ratio, type, price, amount, total, btc_fee, fee_coin in df.values:
             coin_price = btc_price * binance.fetch_ohlcv(symbol=coin, since=date, limit=1)
 
         if coin in Transactions['coin']:
-
+            transactions.update()
         else:
             transactions.addCoin(coin=coin, coinUnits=???, date=date, currentPrice=coin_price)
+
+
+transactions.update(ratio.split('/'))
