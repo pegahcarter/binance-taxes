@@ -6,8 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
-# personal transaction data
-data/*
+# personal data
+data/transacations.xlsx
+data/withdrawals.
+data/deposits.csv
 
 # Distribution / packaging
 .Python
