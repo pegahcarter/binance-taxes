@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-TRANSACTIONS_FILE = '../data/transactions.xlsx' # TODO: is this right?
+TRANSACTIONS_FILE = '../data/transactions.xlsx'
 
 def addCoin(coin, coinUnits, date=None, currentPrice=None):
     ''' Add initial purchase of coin to transactions table '''
