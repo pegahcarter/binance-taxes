@@ -28,22 +28,36 @@ df['ratio'] = new_ratio
 df = df.sort_values(by='date').reset_index(drop=True)
 
 
+bitfinex = ccxt.bitfinex()
+df['btc_price'] = None
+
+bitfinex.fetch_ohlcv(symbol='BTC/USDT', since=df['date'][0], limit=1)[0][2]
+
+df.head()
+
+for i, date in enumerate(df['date']):
+    # pull price data for btc, numerator, and denominator
+    [btc_data] = bitfinex.fetch_ohlcv(symbol='BTC/USDT', since=date, limit=1)
+    numerator, denominator = df['ratio'][i].split('/')
+    df.loc[df['date'] == date, 'btc_price'] = btc_data[2] # NOTE: we are using the "close" OHLCV parameter
+
+
 
 
 
 # date = df['date'][0]
-# trade = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)
-# order = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)[0][0]
-#
 # date1 = df['date'][1]
-# trade1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)
-# order1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)[0][0]
-#
 # date2 = df['date'][2]
+
+# trade = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)
+# trade1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)
 # trade2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)
+
+# order = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)[0][0]
+# order1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)[0][0]
 # order2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)[0][0]
-#
-#
-# df['date'][0] - order
-# df['date'][1] - order1
-# df['date'][2] - order2
+
+# NOTE: the values below are in milliseconds.
+# date - order
+# date1 - order1
+# date2 - order2
