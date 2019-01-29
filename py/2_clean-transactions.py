@@ -6,20 +6,20 @@ import ccxt
 binance = ccxt.binance()
 df = pd.read_excel('../data/transactions.xlsx')
 
-df.rename(columns={'Date(UTC)':'date', 'Fee Coin':'fee_coin', 'Market':'ratio'}, inplace=True)
+df.rename(columns={'Date(UTC)':'date', 'Fee Coin':'fee_coin', 'Market':'ticker'}, inplace=True)
 df.columns = [col.lower() for col in df.columns]
 
 df['date'] = [int(datetime.timestamp(datetime.strptime(day, '%Y-%m-%d %H:%M:%S')) * 1000)
               for day in df['date']]
 
 new_ratio = []
-for ratio in df['ratio']:
+for ratio in df['ticker']:
     if len(ratio) == 6:
         new_ratio.append(ratio[:3] + '/' + ratio[3:])
     else:
         new_ratio.append('/'.join(ratio.partition('NANO')[1:]))
 
-df['ratio'] = new_ratio
+df['ticker'] = new_ratio
 
 # For now, we'll assume fetch_ohlcv perfectly pulls the price information at that timestamp.
 # Add a btc_price to every transaction for conversion
@@ -38,7 +38,7 @@ df.head()
 for i, date in enumerate(df['date']):
     # pull price data for btc, numerator, and denominator
     [btc_data] = bitfinex.fetch_ohlcv(symbol='BTC/USDT', since=date, limit=1)
-    numerator, denominator = df['ratio'][i].split('/')
+    numerator, denominator = df['ticker'][i].split('/')
     df.loc[df['date'] == date, 'btc_price'] = btc_data[2] # NOTE: we are using the "close" OHLCV parameter
 
 

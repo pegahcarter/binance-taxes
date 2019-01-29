@@ -3,7 +3,8 @@ import sys
 import pandas as pd
 import numpy as np
 import ccxt
-import pprint
+import functions
+
 
 with open('../../../administrative/ethereum/api.txt', 'r') as f:
     api = f.readlines()
@@ -15,27 +16,31 @@ binance = ccxt.binance({'apiKey': apiKey, 'secret': secret})
 deposits = binance.fetch_deposits()
 withdrawals = binance.fetch_withdrawals()
 
-df = pd.DataFrame(columns=['date', 'ratio', 'type', 'price', 'amount', 'total', 'address', 'txId'])
+df = pd.DataFrame(columns=['date', 'ticker', 'type', 'price', 'amount', 'total', 'address', 'txId'])
 
+df = []
 for deposit in deposits:
 
     date = deposit['timestamp']
-    ratio = deposit['currency'] + '/BTC' #TODO: BTC deposits will not work
+    ticker = deposit['currency']
     actionType = 'DEPOSIT'
-    price = binance.fetch_ohlcv(symbol=ratio, since=date, limit=1)[0][2]
+    price = binance.fetch_ohlcv(symbol=ticker + '/BTC', since=date, limit=1)[0][2] # TODO: this will not work w/ BTC deposits
     amount = deposit['amount']
     address = deposit['address']
     txId = deposit['txid']
 
-    # TODO: this will not work BTC deposits
-    df.append([date, ratio, actionType, price, amount, price * amount, address, txId])
+    df.append({'date': date,
+               'ticker': ticker,
+               'type': actionType,
+               'price': price,
+               'amount': amount,
+               'total': price * amount,
+               'address': address,
+               'txId': txId})
 
-test = deposits[0]
 
+pd.DataFrame(data=df)
 
-
-
-deposits
 
 '''
 - Enough data to count it as a "buy"

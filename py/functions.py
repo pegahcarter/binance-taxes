@@ -3,6 +3,19 @@ import numpy as np
 from datetime import datetime
 
 
+
+def get_price(coin, date):
+    btc_price = binance.fetch_ohlcv(symbol='BTC/USDT', since=date, limit=1)[0][2]
+    if coin == 'BTC':
+        return btc_price
+    else:
+        btc_ratio = binance.fetch_ohlcv(symbol=coin + '/BTC', since=date, limit=1)[0][2]
+        return btc_price * btc_ratio
+
+
+
+
+
 def addCoin(coin, coinUnits, date=None, currentPrice=None):
     ''' Add initial purchase of coin to transactions table '''
 
@@ -25,9 +38,7 @@ def addCoin(coin, coinUnits, date=None, currentPrice=None):
                     'cumulativeCost': currentPrice * coinUnits,
                     'gainLoss': 0}, ignore_index=True)
 
-    df.to_csv(TRANSACTIONS_FILE, index=False)
-
-    return
+    return df.to_csv(TRANSACTIONS_FILE, index=False)
 
 
 def update(coins, sides, coinUnits, d_amt, date=None, currentPrice=None):
@@ -83,7 +94,4 @@ def update(coins, sides, coinUnits, d_amt, date=None, currentPrice=None):
                         'gainLoss': gainLoss,
                         'realisedPct': realisedPct}, ignore_index=True)
 
-    # Save updated dataframe to CSV
-    df.to_csv(TRANSACTIONS_FILE, index=False)
-
-    return
+    return df.to_csv(TRANSACTIONS_FILE, index=False)
