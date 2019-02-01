@@ -3,28 +3,30 @@ import sys
 import pandas as pd
 import numpy as np
 import ccxt
-import functions
+from functions import btc_price
 
 
-with open('../../../administrative/ethereum/api.txt', 'r') as f:
+
+with open('../../../Administrative/api.txt', 'r') as f:
     api = f.readlines()
     apiKey = api[0][:-1]
-    secret = api[1][:-1]
+    secret = api[1]
 
-binance = ccxt.binance({'apiKey': apiKey, 'secret': secret})
+binance = ccxt.binance({'options': {'adjustForTimeDifference': True},
+                         'apiKey': apiKey,
+                         'secret': secret})
 
 deposits = binance.fetch_deposits()
 withdrawals = binance.fetch_withdrawals()
+binance.account()
 
-df = pd.DataFrame(columns=['date', 'ticker', 'type', 'price', 'amount', 'total', 'address', 'txId'])
 
-df = []
 for deposit in deposits:
 
     date = deposit['timestamp']
     ticker = deposit['currency']
     actionType = 'DEPOSIT'
-    price = binance.fetch_ohlcv(symbol=ticker + '/BTC', since=date, limit=1)[0][2] # TODO: this will not work w/ BTC deposits
+    price = btc_price(ticker, date)
     amount = deposit['amount']
     address = deposit['address']
     txId = deposit['txid']

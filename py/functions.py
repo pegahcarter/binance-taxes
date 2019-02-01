@@ -1,16 +1,17 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import ccxt
 
-
-
-def get_price(coin, date):
-    btc_price = binance.fetch_ohlcv(symbol='BTC/USDT', since=date, limit=1)[0][2]
+exchange = ccxt.binance()
+def btc_price(coin, date):
     if coin == 'BTC':
-        return btc_price
+        return 1.0/exchange.fetch_ohlcv(symbol=coin + '/BTC', since=date, limit=1)[0][2]
     else:
-        btc_ratio = binance.fetch_ohlcv(symbol=coin + '/BTC', since=date, limit=1)[0][2]
-        return btc_price * btc_ratio
+        return exchange.fetch_ohlcv(symbol=coin + '/BTC', since=date, limit=1)[0][2]
+
+
+
 
 
 
