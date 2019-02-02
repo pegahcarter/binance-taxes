@@ -9,7 +9,6 @@ __pycache__/
 # personal data
 data/*.csv
 data/*.xlsx
-data/deposits-transactions-withdrawals.csv
 
 # Distribution / packaging
 .Python
