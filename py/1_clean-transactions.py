@@ -45,19 +45,12 @@ for i, date in enumerate(df['date']):
 
 
 
-# date = df['date'][0]
 # date1 = df['date'][1]
 # date2 = df['date'][2]
-
-# trade = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)
 # trade1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)
 # trade2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)
-
-# order = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date)[0][0]
 # order1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)[0][0]
 # order2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)[0][0]
-
 # NOTE: the values below are in milliseconds.
-# date - order
 # date1 - order1
 # date2 - order2
