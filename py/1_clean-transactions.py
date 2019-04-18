@@ -1,16 +1,18 @@
 from operator import itemgetter
 import pandas as pd
-from datetime import datetime
+import datetime
+import time
 import ccxt
 
 binance = ccxt.binance()
-df = pd.read_excel('../data/transactions.xlsx')
+df = pd.read_excel('/home/carl/Documents/main/legal/taxes/crypto/2018/binance/transactions.xlsx')
 
 df.rename(columns={'Date(UTC)':'date', 'Fee Coin':'fee_coin', 'Market':'ticker'}, inplace=True)
 df.columns = [col.lower() for col in df.columns]
 
-df['date'] = [int(datetime.timestamp(datetime.strptime(day, '%Y-%m-%d %H:%M:%S')) * 1000)
-              for day in df['date']]
+df['date'] = map(lambda x: time.mktime(datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S').timetuple()), df['date'])
+df['date'] *= 1000
+
 
 new_ratio = []
 for ratio in df['ticker']:
@@ -27,30 +29,31 @@ df['ticker'] = new_ratio
 # First of all- make sure our transactions are in the correct order (I know this from experience)
 df = df.sort_values(by='date').reset_index(drop=True)
 
-
-bitfinex = ccxt.bitfinex()
-df['btc_price'] = None
-
-bitfinex.fetch_ohlcv(symbol='BTC/USDT', since=df['date'][0], limit=1)[0][2]
-
-df.head()
-
-for i, date in enumerate(df['date']):
+for i, date in enumerate(df['date'].unique()):
     # pull price data for btc, numerator, and denominator
-    [btc_data] = bitfinex.fetch_ohlcv(symbol='BTC/USDT', since=date, limit=1)
+    [btc_data] = binance.fetch_ohlcv(symbol='BTC/USDT', since=int(date), limit=1)
     numerator, denominator = df['ticker'][i].split('/')
     df.loc[df['date'] == date, 'btc_price'] = btc_data[2] # NOTE: we are using the "close" OHLCV parameter
 
+df.to_csv('../data/transactions.csv')
 
 
+'''
+To-do
+- get price of fee coin
+- get price of numerator
+- get price of denominator
+    > if it's BTC, we can use btc_price for both sides
+        > numerator price = price * btc_price
+        > denominator price = btc_price
+    > if it's not BTC
+        > denominator price = denominator/BTC * btc_price
+        > numerator price = denominator * price
 
+'''
 
-# date1 = df['date'][1]
-# date2 = df['date'][2]
-# trade1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)
-# trade2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)
-# order1 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date1)[0][0]
-# order2 = binance.fetch_ohlcv(symbol="BTC/USDT", limit=1, since=date2)[0][0]
-# NOTE: the values below are in milliseconds.
-# date1 - order1
-# date2 - order2
+#
+# df['numerator'] = None
+# df['denominator'] = None
+# df.loc[:, ['numerator', 'denominator']] = map(lambda x: x.split('/'), df['ticker'])
+# df.head()
