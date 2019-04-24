@@ -2,58 +2,53 @@ from operator import itemgetter
 import pandas as pd
 import datetime
 import time
-import ccxt
+from exchange import tickers, fetch_price
 
-binance = ccxt.binance()
-df = pd.read_excel('/home/carl/Documents/main/legal/taxes/crypto/2018/binance/transactions.xlsx')
 
+df = pd.read_excel('../data/transactions.xlsx')
 df.rename(columns={'Date(UTC)':'date', 'Fee Coin':'fee_coin', 'Market':'ticker'}, inplace=True)
 df.columns = [col.lower() for col in df.columns]
 
-df['date'] = map(lambda x: time.mktime(datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S').timetuple()), df['date'])
-df['date'] *= 1000
-
-
-new_ratio = []
-for ratio in df['ticker']:
-    if len(ratio) == 6:
-        new_ratio.append(ratio[:3] + '/' + ratio[3:])
-    else:
-        new_ratio.append('/'.join(ratio.partition('NANO')[1:]))
-
-df['ticker'] = new_ratio
+df['date'].apply(lambda x: time.mktime(datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S').timetuple()))
+df = df.sort_values(by='date').reset_index(drop=True)
+df['ticker'] = map(lambda x: tickers[x], df['ticker'])
 
 # For now, we'll assume fetch_ohlcv perfectly pulls the price information at that timestamp.
 # Add a btc_price to every transaction for conversion
 
-# First of all- make sure our transactions are in the correct order (I know this from experience)
-df = df.sort_values(by='date').reset_index(drop=True)
+df['numerator'] = None
+df['denominator'] = None
+df['numerator_price'] = None
+df['denominator_price'] = None
+df['fee_coin_price'] = None
+df.loc[:, ['numerator', 'denominator']] = map(lambda x: x.split('/'), df['ticker'])
 
 for i, date in enumerate(df['date'].unique()):
-    # pull price data for btc, numerator, and denominator
-    [btc_data] = binance.fetch_ohlcv(symbol='BTC/USDT', since=int(date), limit=1)
-    numerator, denominator = df['ticker'][i].split('/')
-    df.loc[df['date'] == date, 'btc_price'] = btc_data[2] # NOTE: we are using the "close" OHLCV parameter
+    if i % 100 == 0:
+        print(i/df['date'].nunique())
+    numerator, denominator, fee_coin, price = df.loc[i, ['numerator', 'denominator', 'fee_coin', 'price']]
+    # pull btc price
+    btc_price = fetch_price('BTC/USDT', date)
+    # pull price data for numerator and denominator
+    if denominator == 'BTC':
+        denominator_price = btc_price
+    else:
+        denominator_price = btc_price * fetch_price(denominator + '/BTC', date)
+    numerator_price = denominator_price * price
+    # pull fee coin price
+    if fee_coin == 'BTC':
+        fee_coin_price = btc_price
+    elif fee_coin == numerator:
+        fee_coin_price = numerator_price
+    elif fee_coin == denominator:
+        fee_coin_price = denominator_price
+    else:
+        fee_coin_price = btc_price * fetch_price(fee_coin + '/BTC', date)
 
-df.to_csv('../data/transactions.csv')
+    df.loc[
+        df['date'] == date,
+        ['btc_price', 'denominator_price', 'numerator_price', 'fee_coin_price'
+    ]] = btc_price, denominator_price, numerator_price, fee_coin_price
 
 
-'''
-To-do
-- get price of fee coin
-- get price of numerator
-- get price of denominator
-    > if it's BTC, we can use btc_price for both sides
-        > numerator price = price * btc_price
-        > denominator price = btc_price
-    > if it's not BTC
-        > denominator price = denominator/BTC * btc_price
-        > numerator price = denominator * price
-
-'''
-
-#
-# df['numerator'] = None
-# df['denominator'] = None
-# df.loc[:, ['numerator', 'denominator']] = map(lambda x: x.split('/'), df['ticker'])
-# df.head()
+df.to_excel('../data/transactions_clean.xlsx', drop_index=True)
