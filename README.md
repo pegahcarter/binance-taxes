@@ -1,4 +1,4 @@
-Carter Carlson
+Carl Farterson
 
 Steps completed:
 * Aggregate 3-month trade data into one CSV for the whole year.
